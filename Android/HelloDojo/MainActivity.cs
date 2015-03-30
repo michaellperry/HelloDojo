@@ -7,35 +7,35 @@ using Android.Views;
 using Android.Widget;
 using Android.OS;
 
+using Assisticant.Binding;
+
 namespace HelloDojo
 {
-	[Activity(Label = "HelloDojo", MainLauncher = true, Icon = "@drawable/icon")]
+	[Activity (Label = "HelloDojo", MainLauncher = true, Icon = "@drawable/icon")]
 	public class MainActivity : Activity
 	{
-		private UserLogin _userLogin = new UserLogin();
+		private UserLoginViewModel _userLoginViewModel = new UserLoginViewModel ();
+		private BindingManager _bindings = new BindingManager ();
 
-		protected override void OnCreate(Bundle bundle)
+		protected override void OnCreate (Bundle bundle)
 		{
-			base.OnCreate(bundle);
+			base.OnCreate (bundle);
 
-			SetContentView(Resource.Layout.Main);
+			_bindings.Initialize (this);
 
-			Button button = FindViewById<Button>(Resource.Id.myButton);
-			EditText userName = FindViewById<EditText>(Resource.Id.userName);
-			EditText password = FindViewById<EditText>(Resource.Id.password);
-			TextView welcome = FindViewById<TextView>(Resource.Id.welcome);
+			SetContentView (Resource.Layout.Main);
 
-			userName.Text = _userLogin.UserName;
-			password.Text = _userLogin.Password;
-			welcome.Text = _userLogin.Message;
-			
-			button.Click += delegate
-			{
-				_userLogin.UserName = userName.Text;
-				_userLogin.Password = password.Text;
-				_userLogin.Login();
-				welcome.Text = _userLogin.Message;
-			};
+			_bindings.BindText (FindViewById<EditText> (Resource.Id.userName), () => _userLoginViewModel.UserLogin.UserName, x => _userLoginViewModel.UserLogin.UserName = x);
+			_bindings.BindText (FindViewById<EditText> (Resource.Id.password), () => _userLoginViewModel.UserLogin.Password, x => _userLoginViewModel.UserLogin.Password = x);
+			_bindings.BindCommand (FindViewById<Button> (Resource.Id.myButton), _userLoginViewModel.Login,
+				()=>(!string.IsNullOrWhiteSpace(_userLoginViewModel.UserLogin.UserName) && !string.IsNullOrWhiteSpace(_userLoginViewModel.UserLogin.Password)));
+			_bindings.BindText (FindViewById<TextView> (Resource.Id.welcome), () => _userLoginViewModel.Message);
+		}
+
+		protected override void OnDestroy ()
+		{
+			_bindings.Unbind ();
+			base.OnDestroy ();
 		}
 	}
 }
