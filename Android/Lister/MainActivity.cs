@@ -13,11 +13,17 @@ namespace Lister
 	[Activity (Label = "Lister", MainLauncher = true, Icon = "@drawable/icon")]
 	public class MainActivity : Activity
 	{
-		private AddressBookViewModel _viewModel = new AddressBookViewModel(
-			new AddressBook(),
-			new PersonSelection());
+		private AddressBookViewModel _viewModel = ViewModelLocator.Instance.Main;
 		
 		private BindingManager _bindings = new BindingManager();
+
+		void OnPersonSelected (PersonViewModel p)
+		{
+			if (p != null) 
+			{
+				StartActivity (typeof(DetailActivity));
+			}
+		}
 
 		protected override void OnCreate (Bundle bundle)
 		{
@@ -40,12 +46,23 @@ namespace Lister
 				FindViewById<ListView>(Resource.Id.listPeople),
 				() => _viewModel.People,
 				Android.Resource.Layout.SimpleListItem1,
+				()=>_viewModel.SelectedPerson,
+				p=>_viewModel.SelectedPerson = p,
 				(view, person, bindings) =>
 				{
 					bindings.BindText(
 						view.FindViewById<TextView>(Android.Resource.Id.Text1),
 						() => person.Name);
 				});
+
+			_bindings.Bind (() => _viewModel.SelectedPerson,
+				p => OnPersonSelected (p));
+		}
+
+		protected override void OnResume ()
+		{
+			_viewModel.SelectedPerson = null;
+			base.OnResume ();
 		}
 
 		protected override void OnDestroy()
