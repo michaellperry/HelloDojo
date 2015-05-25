@@ -39,6 +39,13 @@ namespace WeatherApp.Logic.ViewModels
 				_storageService,
 				_weatherServiceAgent,
 				_document);
+
+			List<CityMemento> cities = _storageService.LoadCities();
+			_document.Load(cities);
+
+			_bindings.Bind(
+				() => _document.Save(),
+				c => _storageService.SaveCities(c));
         }
 
         public MainViewModel Main

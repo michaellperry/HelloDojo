@@ -10,31 +10,104 @@ namespace WeatherApp.Android
 {
 	public class AndroidStorageService : IStorageService
 	{
-		public List<CityMemento> LoadCities()
+		public List<CityMemento> LoadCities ()
 		{
-            throw new NotImplementedException();
+			var fileName = GetFileName ();
+
+			if (File.Exists (fileName)) {
+				try {
+					using (var stream = new FileStream (
+						                    fileName,
+						                    FileMode.Open)) {
+						var dc = new DataContractSerializer (
+							         typeof(DocumentMemento));
+
+						var document = (DocumentMemento)dc.ReadObject (stream);
+						return document.Cities;
+					}
+				} catch (Exception x) {
+					// TODO: Indicate the error to the user.
+				}
+			}
+
+			return new List<CityMemento> ();
 		}
 
-		public void SaveCities(IEnumerable<CityMemento> cities)
+		public void SaveCities (IEnumerable<CityMemento> cities)
 		{
-            throw new NotImplementedException();
-        }
+			var fileName = GetFileName ();
 
-		public List<ForecastMemento> LoadForecasts(string cityName)
-		{
-            throw new NotImplementedException();
-        }
+			FileMode fileMode = File.Exists (fileName)
+				? FileMode.Truncate
+				: FileMode.CreateNew;
 
-		public void SaveForecasts(string cityName, IEnumerable<ForecastMemento> forecasts)
-		{
-            throw new NotImplementedException();
-        }
+			using (var stream = new FileStream (
+				                    fileName,
+				                    fileMode)) {
+				var dc = new DataContractSerializer (
+					         typeof(DocumentMemento));
 
-		private static string GetFileName()
+				dc.WriteObject (stream, new DocumentMemento {
+					Cities = cities.ToList ()
+				});
+			}
+		}
+
+		public List<ForecastMemento> LoadForecasts (string cityName)
 		{
-			var documents = Environment.GetFolderPath(
-				Environment.SpecialFolder.MyDocuments);
-			return Path.Combine(documents, "cities.xml");
+			var fileName = Path.Combine (Environment.GetFolderPath (Environment.SpecialFolder.MyDocuments), string.Concat (cityName, ".xml"));
+
+			if (File.Exists (fileName)) {
+				try {
+					using (var stream = new FileStream (
+						                    fileName,
+						                    FileMode.Open)) {
+						var dc = new DataContractSerializer (
+							         typeof(List<ForecastMemento>));
+
+						var forecasts = (List<ForecastMemento>)dc.ReadObject (stream);
+						return forecasts;
+					}
+					
+				} catch (Exception x) {
+					// TODO: Indicate the error to the user.
+					Console.WriteLine (x.Message);
+				}
+			}
+
+			return new List<ForecastMemento> ();
+		}
+
+		public void SaveForecasts (string cityName, IEnumerable<ForecastMemento> forecasts)
+		{
+			var fileName = Path.Combine (Environment.GetFolderPath (Environment.SpecialFolder.MyDocuments), string.Concat (cityName, ".xml"));
+
+			FileMode fileMode = File.Exists (fileName)
+				? FileMode.Truncate
+				: FileMode.CreateNew;
+
+			try {
+
+				using (var stream = new FileStream (
+
+					                fileName,
+					                fileMode)) {
+					var dc = new DataContractSerializer (
+						        typeof(List<ForecastMemento>));
+
+					dc.WriteObject (stream, forecasts.ToList ());
+				}
+			} catch (Exception ex) {
+				Console.WriteLine (ex.Message);
+			}
+
+		}
+
+		private static string GetFileName ()
+		{
+			var documents = Environment.GetFolderPath (
+				                Environment.SpecialFolder.MyDocuments);
+			return Path.Combine (documents, "cities.xml");
 		}
 	}
 }
