@@ -24,7 +24,14 @@ namespace WeatherApp.Logic.Services
 
 		public async Task Refresh(City city)
 		{
+			List<ForecastMemento> forecasts =
+				_storageService.LoadForecasts(city.Name);
+			city.LoadForecasts(forecasts);
+
 			await _weatherServiceAgent.Refresh();
+
+			forecasts = city.SaveForecasts();
+			_storageService.SaveForecasts(city.Name, forecasts);
 		}
 	}
 }

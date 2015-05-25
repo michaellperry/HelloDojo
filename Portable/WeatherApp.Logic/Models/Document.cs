@@ -30,12 +30,16 @@ namespace WeatherApp.Logic.Models
 
 		public void Load(IEnumerable<CityMemento> cities)
 		{
-            throw new NotImplementedException();
+			_cities.Clear ();
+			foreach (var item in cities) 
+			{
+				_cities.Add (new City (){ Name = item.Name });
+			}
         }
 
 		public List<CityMemento> Save()
 		{
-            throw new NotImplementedException();
+			return _cities.Select (c => new CityMemento{ Name = c.Name }).ToList ();
         }
 	}
 }
